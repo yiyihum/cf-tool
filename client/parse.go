@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/xalanq/cf-tool/util"
+	"github.com/yiyihum/cf-tool/util"
 
 	"github.com/k0kubun/go-ansi"
 
@@ -28,7 +28,7 @@ func findSample(body []byte) (input [][]byte, output [][]byte, err error) {
 	}
 	// adapt new codeforces input format
 	regexp1, _ := regexp.Compile(`<div(?U).*>`)
-	regexp2,_ := regexp.Compile(`</div>`)
+	regexp2, _ := regexp.Compile(`</div>`)
 	for i := 0; i < len(a); i++ {
 		str := regexp1.ReplaceAll(a[i][1], []byte(""))
 		a[i][1] = regexp2.ReplaceAll(str, []byte("\n"))

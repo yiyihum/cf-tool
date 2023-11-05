@@ -5,8 +5,8 @@ import (
 	"regexp"
 
 	"github.com/fatih/color"
-	"github.com/xalanq/cf-tool/client"
-	"github.com/xalanq/cf-tool/util"
+	"github.com/yiyihum/cf-tool/client"
+	"github.com/yiyihum/cf-tool/util"
 )
 
 // SetGenAfterParse set it yes or no
