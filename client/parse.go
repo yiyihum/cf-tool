@@ -26,6 +26,13 @@ func findSample(body []byte) (input [][]byte, output [][]byte, err error) {
 	if a == nil || b == nil || len(a) != len(b) {
 		return nil, nil, fmt.Errorf("Cannot parse sample with input %v and output %v", len(a), len(b))
 	}
+	// adapt new codeforces input format
+	regexp1, _ := regexp.Compile(`<div(?U).*>`)
+	regexp2,_ := regexp.Compile(`</div>`)
+	for i := 0; i < len(a); i++ {
+		str := regexp1.ReplaceAll(a[i][1], []byte(""))
+		a[i][1] = regexp2.ReplaceAll(str, []byte("\n"))
+	}
 	newline := regexp.MustCompile(`<[\s/br]+?>`)
 	filter := func(src []byte) []byte {
 		src = newline.ReplaceAll(src, []byte("\n"))
