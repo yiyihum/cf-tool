@@ -2,9 +2,9 @@ package client
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,7 +24,7 @@ func findSample(body []byte) (input [][]byte, output [][]byte, err error) {
 	a := irg.FindAllSubmatch(body, -1)
 	b := org.FindAllSubmatch(body, -1)
 	if a == nil || b == nil || len(a) != len(b) {
-		return nil, nil, fmt.Errorf("Cannot parse sample with input %v and output %v", len(a), len(b))
+		return nil, nil, fmt.Errorf("cannot parse sample with input %v and output %v", len(a), len(b))
 	}
 	// adapt new codeforces input format
 	regexp1, _ := regexp.Compile(`<div(?U).*>`)
@@ -46,6 +46,83 @@ func findSample(body []byte) (input [][]byte, output [][]byte, err error) {
 	return
 }
 
+func findStatement(body []byte) (statementJSON []byte, err error) {
+	rg_level, _ := regexp.Compile(`<div class="header"><div class="title">(\w)`)
+	level := rg_level.FindSubmatch(body)
+	rg_title, _ := regexp.Compile(`<div class="header"><div class="title">\w\.\s(.*?)</div>`)
+	title := rg_title.FindSubmatch(body)
+	re_time, _ := regexp.Compile(`time limit per test</div>(.*?)</div>`)
+	time := re_time.FindSubmatch(body)
+	re_memory, _ := regexp.Compile(`memory limit per test</div>(.*?)</div>`)
+	memory := re_memory.FindSubmatch(body)
+	standardIO := true
+	if !bytes.Contains(body, []byte(`<div class="input-file"><div class="property-title">input</div>standard input</div><div class="output-file"><div class="property-title">output</div>standard output</div>`)) {
+		standardIO = false
+	}
+	rg_problem, _ := regexp.Compile(`</div></div><div><p>([\s\S]*?)</div><div class="input-specification">`)
+	problem := rg_problem.FindSubmatch(body)
+	rg_input, _ := regexp.Compile(`Input</div><p>([\s\S]*?)</div><div class="output-specification">`)
+	inputFormat := rg_input.FindSubmatch(body)
+	rg_output, _ := regexp.Compile(`Output</div><p>([\s\S]*?)</div><div class="sample-tests">`)
+	outputFormat := rg_output.FindSubmatch(body)
+	rg_note, _ := regexp.Compile(`Note</div><p>([\s\S]*?)</p></div></div><p>`)
+	note := rg_note.FindSubmatch(body)
+	if len(note) < 2 {
+		note = [][]byte{[]byte("none"), []byte("none")}
+	}
+	rg_tags, _ := regexp.Compile(`<span class="tag-box" style="font-size:1.2rem;" title="Sortings, orderings">\s*(.*?)\s*</span>`)
+	tags := rg_tags.FindAllSubmatch(body, -1)
+	tag := ""
+	if len(tags) == 0 {
+		tag = "none"
+	} else {
+		tag = string(tags[0][1])
+		for i := 1; i < len(tags); i++ {
+			tag = tag + ", " + string(tags[i][1])
+		}
+	}
+	input, output, err := findSample(body)
+	if err != nil {
+		return
+	}
+	examples := make([]map[string]string, len(input))
+	for i := 0; i < len(input); i++ {
+		examples[i] = map[string]string{
+			"input":  string(input[i]),
+			"output": string(output[i]),
+		}
+	}
+
+	newline := regexp.MustCompile(`</?(br|p|div|li|ul)[^>]*>`)
+	filter := func(src []byte) string {
+		src = newline.ReplaceAll(src, []byte("\n"))
+		s := html.UnescapeString(string(src))
+		s = strings.TrimSpace(s)
+		re := regexp.MustCompile(`\n+`)
+		s = re.ReplaceAllString(s, "\n")
+		return s
+	}
+
+	statementMap := map[string]interface{}{
+		"level": filter(level[1]),
+		"title": filter(title[1]),
+		"time limit": filter(time[1]),
+		"memory limit": filter(memory[1]),
+		"standard IO": standardIO,
+		"problem": filter(problem[1]),
+		"input format": filter(inputFormat[1]),
+		"output format": filter(outputFormat[1]),
+		"note": filter(note[1]),
+		"tags": tag,
+		"examples": examples,
+	}
+	statementJSON, err = json.Marshal(statementMap)
+	if err != nil {
+		return nil, err
+	}
+	return statementJSON, nil
+}
+
 // ParseProblem parse problem to path. mu can be nil
 func (c *Client) ParseProblem(URL, path string, mu *sync.Mutex) (samples int, standardIO bool, err error) {
 	body, err := util.GetBody(c.client, URL)
@@ -63,6 +140,11 @@ func (c *Client) ParseProblem(URL, path string, mu *sync.Mutex) (samples int, st
 		return
 	}
 
+	statementJSON, err := findStatement(body)
+	if err != nil {
+		return
+	}
+
 	standardIO = true
 	if !bytes.Contains(body, []byte(`<div class="input-file"><div class="property-title">input</div>standard input</div><div class="output-file"><div class="property-title">output</div>standard output</div>`)) {
 		standardIO = false
@@ -71,7 +153,7 @@ func (c *Client) ParseProblem(URL, path string, mu *sync.Mutex) (samples int, st
 	for i := 0; i < len(input); i++ {
 		fileIn := filepath.Join(path, fmt.Sprintf("in%v.txt", i+1))
 		fileOut := filepath.Join(path, fmt.Sprintf("ans%v.txt", i+1))
-		e := ioutil.WriteFile(fileIn, input[i], 0644)
+		e := os.WriteFile(fileIn, input[i], 0644)
 		if e != nil {
 			if mu != nil {
 				mu.Lock()
@@ -81,7 +163,7 @@ func (c *Client) ParseProblem(URL, path string, mu *sync.Mutex) (samples int, st
 				mu.Unlock()
 			}
 		}
-		e = ioutil.WriteFile(fileOut, output[i], 0644)
+		e = os.WriteFile(fileOut, output[i], 0644)
 		if e != nil {
 			if mu != nil {
 				mu.Lock()
@@ -90,6 +172,17 @@ func (c *Client) ParseProblem(URL, path string, mu *sync.Mutex) (samples int, st
 			if mu != nil {
 				mu.Unlock()
 			}
+		}
+	}
+	fileStatement := filepath.Join(path, "statement.json")
+	e := os.WriteFile(fileStatement, statementJSON, 0644)
+	if e != nil {
+		if mu != nil {
+			mu.Lock()
+		}
+		color.Red(e.Error())
+		if mu != nil {
+			mu.Unlock()
 		}
 	}
 	return len(input), standardIO, nil
