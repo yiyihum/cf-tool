@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="2b0be737-1f79-46f5-8dd9-74d490ff7ee4" name="msra">
+        <fileTransfer accessType="SFTP" host="127.0.0.1" port="2222" sshConfigId="a7eb8ed7-cf53-4d97-8fe6-5e801957ba58" sshConfig="REDMOND.v-yimhuang@127.0.0.1:2222 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" isUseRsync="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

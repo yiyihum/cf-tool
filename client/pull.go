@@ -16,7 +16,7 @@ import (
 )
 
 func findCode(body []byte) (string, error) {
-	
+
 	reg := regexp.MustCompile(`<pre[\s\S]*?>([\s\S]*?)</pre>`)
 	tmp := reg.FindSubmatch(body)
 	if tmp == nil {

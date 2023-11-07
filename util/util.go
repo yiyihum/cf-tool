@@ -12,6 +12,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -74,9 +75,21 @@ func YesOrNo(note string) bool {
 
 // GetBody read body
 func GetBody(client *http.Client, URL string) ([]byte, error) {
+
 	resp, err := client.Get(URL)
-	if err != nil {
-		return nil, err
+	for i := 0; i < 10; i++ {
+		if err != nil {
+			return nil, err
+		}
+		if resp.StatusCode == 200 {
+			break
+		}
+		time.Sleep(60 * time.Second)
+		resp, err = client.Get(URL)
+	}
+	if resp.StatusCode != 200 {
+		//tmlBody, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("timeout for 50 try statusCode:", resp.StatusCode)
 	}
 	defer resp.Body.Close()
 	return ioutil.ReadAll(resp.Body)
