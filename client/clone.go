@@ -45,7 +45,7 @@ func (c *Client) Clone(handle, rootPath string, ac bool) (err error) {
 	count := 0
 	color.Cyan("Total submissions: %v", total)
 
-	threadNumber := 2
+	threadNumber := 1
 	ch := make(chan cloneData, threadNumber)
 	again := make(chan cloneData, threadNumber)
 	wg := sync.WaitGroup{}

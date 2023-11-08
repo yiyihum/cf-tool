@@ -47,10 +47,6 @@ func findSample(body []byte) (input [][]byte, output [][]byte, err error) {
 }
 
 func findStatement(body []byte) (statementJSON []byte, err error) {
-	rg_level, _ := regexp.Compile(`<div class="header"><div class="title">(\w)`)
-	level := rg_level.FindSubmatch(body)
-	rg_title, _ := regexp.Compile(`<div class="header"><div class="title">\w\.\s(.*?)</div>`)
-	title := rg_title.FindSubmatch(body)
 	re_time, _ := regexp.Compile(`time limit per test</div>(.*?)</div>`)
 	time := re_time.FindSubmatch(body)
 	re_memory, _ := regexp.Compile(`memory limit per test</div>(.*?)</div>`)
@@ -70,17 +66,17 @@ func findStatement(body []byte) (statementJSON []byte, err error) {
 	if len(note) < 2 {
 		note = [][]byte{[]byte("none"), []byte("none")}
 	}
-	rg_tags, _ := regexp.Compile(`<span class="tag-box" style="font-size:1.2rem;" title="Sortings, orderings">\s*(.*?)\s*</span>`)
-	tags := rg_tags.FindAllSubmatch(body, -1)
-	tag := ""
-	if len(tags) == 0 {
-		tag = "none"
-	} else {
-		tag = string(tags[0][1])
-		for i := 1; i < len(tags); i++ {
-			tag = tag + ", " + string(tags[i][1])
-		}
-	}
+	//rg_tags, _ := regexp.Compile(`<span class="tag-box" style="font-size:1.2rem;" title="Sortings, orderings">\s*(.*?)\s*</span>`)
+	//tags := rg_tags.FindAllSubmatch(body, -1)
+	//tag := ""
+	//if len(tags) == 0 {
+	//	tag = "none"
+	//} else {
+	//	tag = string(tags[0][1])
+	//	for i := 1; i < len(tags); i++ {
+	//		tag = tag + ", " + string(tags[i][1])
+	//	}
+	//}
 	input, output, err := findSample(body)
 	if err != nil {
 		return
@@ -104,17 +100,14 @@ func findStatement(body []byte) (statementJSON []byte, err error) {
 	}
 
 	statementMap := map[string]interface{}{
-		"level": filter(level[1]),
-		"title": filter(title[1]),
-		"time limit": filter(time[1]),
-		"memory limit": filter(memory[1]),
-		"standard IO": standardIO,
-		"problem": filter(problem[1]),
-		"input format": filter(inputFormat[1]),
+		"time limit":    filter(time[1]),
+		"memory limit":  filter(memory[1]),
+		"standard IO":   standardIO,
+		"problem":       filter(problem[1]),
+		"input format":  filter(inputFormat[1]),
 		"output format": filter(outputFormat[1]),
-		"note": filter(note[1]),
-		"tags": tag,
-		"examples": examples,
+		"note":          filter(note[1]),
+		"examples":      examples,
 	}
 	statementJSON, err = json.Marshal(statementMap)
 	if err != nil {

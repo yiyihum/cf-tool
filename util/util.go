@@ -75,7 +75,6 @@ func YesOrNo(note string) bool {
 
 // GetBody read body
 func GetBody(client *http.Client, URL string) ([]byte, error) {
-
 	resp, err := client.Get(URL)
 	for i := 0; i < 10; i++ {
 		if err != nil {
@@ -84,7 +83,9 @@ func GetBody(client *http.Client, URL string) ([]byte, error) {
 		if resp.StatusCode == 200 {
 			break
 		}
-		time.Sleep(60 * time.Second)
+		duration := time.Second * 60 * time.Duration(3+i)
+		fmt.Println("Sleeping for\n", duration)
+		time.Sleep(duration)
 		resp, err = client.Get(URL)
 	}
 	if resp.StatusCode != 200 {
@@ -111,6 +112,8 @@ func GetJSONBody(client *http.Client, url string) (map[string]interface{}, error
 	if err != nil {
 		return nil, err
 	}
+	//tmlBody, _ := ioutil.ReadAll(resp.Body)
+	//fmt.Println(resp.StatusCode, string(tmlBody))
 	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
 	var data map[string]interface{}
