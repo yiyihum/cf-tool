@@ -127,6 +127,18 @@ func (c *Client) ParseProblem(URL, path string, mu *sync.Mutex) (samples int, st
 	if err != nil {
 		return
 	}
+	// save problem body
+	fileBody := filepath.Join(path, "problem_body.html")
+	e1 := os.WriteFile(fileBody, body, 0644)
+	if e1 != nil {
+		if mu != nil {
+			mu.Lock()
+		}
+		color.Red(e1.Error())
+		if mu != nil {
+			mu.Unlock()
+		}
+	}
 
 	input, output, err := findSample(body)
 	if err != nil {
