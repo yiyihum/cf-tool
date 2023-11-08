@@ -81,6 +81,8 @@ func (c *Client) Clone(handle, rootPath string, ac bool) (err error) {
 					mu.Lock()
 					count++
 					color.Green(fmt.Sprintf(`%v/%v Saved %v`, count, total, filename))
+					// sleep 3 second to avoid too many requests
+					time.Sleep(time.Second*3)
 					mu.Unlock()
 				} else {
 					if err.Error() == ErrorSkip {

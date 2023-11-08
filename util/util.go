@@ -83,7 +83,8 @@ func GetBody(client *http.Client, URL string) ([]byte, error) {
 		if resp.StatusCode == 200 {
 			break
 		}
-		duration := time.Second * 60 * time.Duration(3+i)
+		// 等待时间指数增加
+		duration := time.Duration(time.Minute * (1 << i))
 		fmt.Println("Sleeping for\n", duration)
 		time.Sleep(duration)
 		resp, err = client.Get(URL)
