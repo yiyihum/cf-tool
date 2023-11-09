@@ -134,6 +134,11 @@ func (c *Client) Clone(handle, rootPath string, ac bool) (err error) {
 			info := Info{ProblemType: "contest", ContestID: contestID, ProblemID: problemID, SubmissionID: submissionID}
 			if contestID == "99999" {
 				info.ProblemType = "acmsguru"
+				mu.Lock()
+				count++
+				color.Green(fmt.Sprintf(`%v/%v Skip %v: acmsguru is not allowed`, count, total, info.Hint()))
+				mu.Unlock()
+				return
 			} else if len(contestID) >= 6 {
 				info.ProblemType = "gym"
 				mu.Lock()
