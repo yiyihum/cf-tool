@@ -49,18 +49,33 @@ func findSample(body []byte) (input [][]byte, output [][]byte, err error) {
 func findStatement(body []byte) (statementJSON []byte, err error) {
 	re_time, _ := regexp.Compile(`time limit per test</div>(.*?)</div>`)
 	time := re_time.FindSubmatch(body)
+	if len(time) < 2 {
+		time = [][]byte{[]byte("none"), []byte("none")}
+	}
 	re_memory, _ := regexp.Compile(`memory limit per test</div>(.*?)</div>`)
 	memory := re_memory.FindSubmatch(body)
+	if len(memory) < 2 {
+		memory = [][]byte{[]byte("none"), []byte("none")}
+	}
 	standardIO := true
 	if !bytes.Contains(body, []byte(`<div class="input-file"><div class="property-title">input</div>standard input</div><div class="output-file"><div class="property-title">output</div>standard output</div>`)) {
 		standardIO = false
 	}
 	rg_problem, _ := regexp.Compile(`</div></div><div><p>([\s\S]*?)</div><div class="input-specification">`)
 	problem := rg_problem.FindSubmatch(body)
+	if len(problem) < 2 {
+		return nil, fmt.Errorf("cannot parse problem")
+	}
 	rg_input, _ := regexp.Compile(`Input</div><p>([\s\S]*?)</div><div class="output-specification">`)
 	inputFormat := rg_input.FindSubmatch(body)
+	if len(inputFormat) < 2 {
+		inputFormat = [][]byte{[]byte("none"), []byte("none")}
+	}
 	rg_output, _ := regexp.Compile(`Output</div><p>([\s\S]*?)</div><div class="sample-tests">`)
 	outputFormat := rg_output.FindSubmatch(body)
+	if len(outputFormat) < 2 {
+		outputFormat = [][]byte{[]byte("none"), []byte("none")}
+	}
 	rg_note, _ := regexp.Compile(`Note</div><p>([\s\S]*?)</p></div></div><p>`)
 	note := rg_note.FindSubmatch(body)
 	if len(note) < 2 {
@@ -230,6 +245,13 @@ func (c *Client) Parse(info Info) (problems []string, paths []string, err error)
 			mu.Lock()
 			fmt.Printf("Parsing %v\n", problemID)
 			mu.Unlock()
+			// check if exists statement.json in path
+			if _, err := os.Stat(filepath.Join(path, "problem_body.html")); err == nil {
+				mu.Lock()
+				ansi.Printf("%v %v\n", color.GreenString("Parsed %v.", problemID), color.YellowString("Skip."))
+				mu.Unlock()
+				return
+			}
 
 			err = os.MkdirAll(path, os.ModePerm)
 			if err != nil {
@@ -239,6 +261,9 @@ func (c *Client) Parse(info Info) (problems []string, paths []string, err error)
 
 			samples, standardIO, err := c.ParseProblem(URL, path, &mu)
 			if err != nil {
+				mu.Lock()
+				color.Red("Failed %v. Error: %v", problemID, err.Error())
+				mu.Unlock()
 				return
 			}
 
