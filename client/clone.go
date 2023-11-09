@@ -82,7 +82,7 @@ func (c *Client) Clone(handle, rootPath string, ac bool) (err error) {
 					count++
 					color.Green(fmt.Sprintf(`%v/%v Saved %v`, count, total, filename))
 					// sleep 3 second to avoid too many requests
-					time.Sleep(time.Second*3)
+					time.Sleep(time.Second * 3)
 					mu.Unlock()
 				} else {
 					if err.Error() == ErrorSkip {
@@ -136,6 +136,11 @@ func (c *Client) Clone(handle, rootPath string, ac bool) (err error) {
 				info.ProblemType = "acmsguru"
 			} else if len(contestID) >= 6 {
 				info.ProblemType = "gym"
+				mu.Lock()
+				count++
+				color.Green(fmt.Sprintf(`%v/%v Skip %v: GYM is not allowed`, count, total, info.Hint()))
+				mu.Unlock()
+				return
 			}
 			if ac && verdict != "OK" {
 				mu.Lock()
