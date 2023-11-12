@@ -284,6 +284,7 @@ func (c *Client) WatchSubmission(info Info, n int, line bool) (submissions []Sub
 
 	maxWidth := 0
 	first := true
+	wait := time.Duration(0)
 	for {
 		st := time.Now()
 		submissions, err = c.getSubmissions(URL, n)
@@ -301,9 +302,10 @@ func (c *Client) WatchSubmission(info Info, n int, line bool) (submissions []Sub
 		if endCount == len(submissions) {
 			return
 		}
+		wait += 5*time.Second
 		sub := time.Now().Sub(st)
-		if sub < time.Second {
-			time.Sleep(time.Duration(time.Second - sub))
+		if sub < wait {
+			time.Sleep(time.Duration(wait - sub))
 		}
 	}
 }

@@ -61,7 +61,7 @@ func findStatement(body []byte) (statementJSON []byte, err error) {
 	if !bytes.Contains(body, []byte(`<div class="input-file"><div class="property-title">input</div>standard input</div><div class="output-file"><div class="property-title">output</div>standard output</div>`)) {
 		standardIO = false
 	}
-	rg_problem, _ := regexp.Compile(`</div></div><div><p>([\s\S]*?)</div><div class="input-specification">`)
+	rg_problem, _ := regexp.Compile(`<p>([\s\S]*?)</div><div class="input-specification">`)
 	problem := rg_problem.FindSubmatch(body)
 	if len(problem) < 2 {
 		return nil, fmt.Errorf("cannot parse problem")
@@ -246,7 +246,7 @@ func (c *Client) Parse(info Info) (problems []string, paths []string, err error)
 			fmt.Printf("Parsing %v\n", problemID)
 			mu.Unlock()
 			// check if exists statement.json in path
-			if _, err := os.Stat(filepath.Join(path, "problem_body.html")); err == nil {
+			if _, err := os.Stat(filepath.Join(path, "statement.json")); err == nil {
 				mu.Lock()
 				ansi.Printf("%v %v\n", color.GreenString("Parsed %v.", problemID), color.YellowString("Skip."))
 				mu.Unlock()
