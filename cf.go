@@ -29,7 +29,7 @@ If you want to compete, the best command is "cf race"
 
 Usage:
   cf config
-  cf submit [-f <file>] [<specifier>...]
+  cf submit [only] [-f <file>] [<specifier>...]
   cf list [<specifier>...]
   cf parse [<specifier>...]
   cf gen [<alias>]

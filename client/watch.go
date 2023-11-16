@@ -284,7 +284,7 @@ func (c *Client) WatchSubmission(info Info, n int, line bool) (submissions []Sub
 
 	maxWidth := 0
 	first := true
-	wait := time.Second*10
+	wait := time.Second*20
 	for {
 		// st := time.Now()
 		time.Sleep(wait)

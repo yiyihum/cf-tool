@@ -22,7 +22,7 @@ func findErrorMessage(body []byte) (string, error) {
 }
 
 // Submit submit (block while pending)
-func (c *Client) Submit(info Info, langID, source string) (err error) {
+func (c *Client) Submit(info Info, langID, source string, submitOnly bool) (err error) {
 	color.Cyan("Submit " + info.Hint())
 
 	URL, err := info.SubmitURL(c.host)
@@ -73,6 +73,11 @@ func (c *Client) Submit(info Info, langID, source string) (err error) {
 	if err != nil {
 		return errors.New("Submit failed")
 	}
+
+	if submitOnly {
+		return errors.New(msg)
+	}
+
 	if !strings.Contains(msg, "submitted successfully") {
 		return errors.New(msg)
 	}

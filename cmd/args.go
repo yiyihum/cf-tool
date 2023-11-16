@@ -15,6 +15,7 @@ import (
 type ParsedArgs struct {
 	Info      client.Info
 	File      string
+	SubmitOnly bool     `docopt:"only"`
 	Specifier []string `docopt:"<specifier>"`
 	Alias     string   `docopt:"<alias>"`
 	Accepted  bool     `docopt:"ac"`

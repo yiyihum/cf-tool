@@ -12,6 +12,7 @@ func Submit() (err error) {
 	cln := client.Instance
 	cfg := config.Instance
 	info := Args.Info
+	submitOnly := Args.SubmitOnly
 	filename, index, err := getOneCode(Args.File, cfg.Template)
 	if err != nil {
 		return
@@ -24,9 +25,9 @@ func Submit() (err error) {
 	source := string(bytes)
 
 	lang := cfg.Template[index].Lang
-	if err = cln.Submit(info, lang, source); err != nil {
+	if err = cln.Submit(info, lang, source, submitOnly); err != nil {
 		if err = loginAgain(cln, err); err == nil {
-			err = cln.Submit(info, lang, source)
+			err = cln.Submit(info, lang, source, submitOnly)
 		}
 	}
 	return
